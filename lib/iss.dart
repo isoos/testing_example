@@ -6,27 +6,42 @@ import 'package:http/http.dart';
 
 /// Provides the International Space Station's current GPS position.
 class IssLocator {
+  final Client client;
+
+  Point<double> _position;
+  Future _ongoingRequest;
+
+  IssLocator(this.client);
+
+  Point<double> get currentPosition => _position;
+
   /// Returns the current GPS position in [latitude, longitude] format.
-  Future<Point<double>> currentPosition() async {
-    Client client = new Client();
+  Future update() async {
+    if (_ongoingRequest == null) {
+      _ongoingRequest = _doUpdate();
+    }
+    await _ongoingRequest;
+    _ongoingRequest = null;
+  }
+
+  Future _doUpdate() async {
     Response rs = await client.get('http://api.open-notify.org/iss-now.json');
     Map data = JSON.decode(rs.body);
     double latitude = double.parse(data['iss_position']['latitude']);
     double longitude = double.parse(data['iss_position']['longitude']);
-    client.close();
-    return new Point<double>(latitude, longitude);
+    _position = new Point<double>(latitude, longitude);
   }
 }
 
 class IssSpotter {
   final IssLocator locator;
   final Point<double> observer;
+  final String label;
 
-  IssSpotter(this.locator, this.observer);
+  IssSpotter(this.locator, this.observer, {this.label});
 
-  Future<bool> isVisible() async {
-    Point<double> current = await locator.currentPosition();
-    double distance = sphericalDistanceKm(current, observer);
+  bool get isVisible {
+    double distance = sphericalDistanceKm(locator.currentPosition, observer);
     return distance < 80.0;
   }
 }

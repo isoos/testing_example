@@ -30,24 +30,20 @@ void main() {
       Point<double> sf = new Point(37.783333, -122.416667);
       Point<double> mtv = new Point(37.389444, -122.081944);
       IssLocator locator = new MockIssLocator();
-      when(locator.currentPosition()).thenReturn(sf);
+      when(locator.currentPosition).thenReturn(sf);
 
       var spotter = new IssSpotter(locator, mtv);
-
-      bool visible = await spotter.isVisible();
-      expect(visible, true);
+      expect(spotter.isVisible, true);
     });
 
     test('ISS not visible', () async {
       Point<double> london = new Point(51.5073, -0.1277);
       Point<double> mtv = new Point(37.389444, -122.081944);
       IssLocator locator = new MockIssLocator();
-      when(locator.currentPosition()).thenReturn(london);
+      when(locator.currentPosition).thenReturn(london);
 
       var spotter = new IssSpotter(locator, mtv);
-
-      bool visible = await spotter.isVisible();
-      expect(visible, false);
+      expect(spotter.isVisible, false);
     });
   });
 }
